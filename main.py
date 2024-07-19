@@ -1,0 +1,16 @@
+import locale
+import sys
+
+from PySide6 import QtWidgets
+from Window import Window
+
+locale.setlocale(locale.LC_ALL, ('ru_RU', 'UTF-8'))
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication([])
+
+    window = Window()
+    window.resize(350, 120)
+    window.show()
+
+    sys.exit(app.exec())
