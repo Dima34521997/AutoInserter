@@ -6,16 +6,11 @@ from openpyxl.styles import (Alignment,
                              Side)
 
 
-def get_msl_numbers_list(ds):
-    pass
-
-
 def execute(ds):
     wb = openpyxl.load_workbook(ds.table)
     ws = wb.active
 
     # ws = wb.get_sheet_by_name('ПИ 026-04')
-
     free_cell = 2
 
     while ws[f'A{free_cell}'].value is not None:
@@ -23,8 +18,13 @@ def execute(ds):
 
     try:
         ds.msl_number = int(ws[f'A{free_cell - 1}'].value) + 1
+
     except ValueError:
         pass
+
+    if ds.device_name == 'МСЛ ББ':
+        ds.per_one_msl *= 4
+        ds.amount *= 4
 
     chunk = ds.amount // ds.per_one_msl
     residue = ds.amount % ds.per_one_msl
@@ -44,19 +44,17 @@ def execute(ds):
             ws[f'B{free_cell + i}'].alignment = Alignment(horizontal='center')
             ws[f'B{free_cell + i}'].border = borders
 
-            ws[f'C{free_cell + i}'] = ds.per_one_msl
+            ws[f'C{free_cell + i}'] = ds.per_one_msl if ds.device_name != 'МСЛ ББ' else ds.per_one_msl // 4
             ws[f'C{free_cell + i}'].alignment = Alignment(horizontal='center')
             ws[f'C{free_cell + i}'].border = borders
 
             if ds.first - (ds.first + ds.per_one_msl - 1) != 0:
-                ws[f'D{free_cell + i}'] = f'{ds.first} - {ds.first + ds.per_one_msl - 1}'
+                ws[f'D{free_cell + i}'] = (f'{ds.first}  '
+                                           f'- {ds.first + ds.per_one_msl - 1}')
             else:
                 ws[f'D{free_cell + i}'] = f'{ds.first}'
-            # ws[f'D{free_cell + i}'] = f'{ds.first} - {ds.first + ds.per_one_msl - 1}'
-            # ws[f'D{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # ws[f'D{free_cell + i}'].border = borders
 
-            ws[f'E{free_cell + i}'] = date.today()
+            ws[f'E{free_cell + i}'] = date.today().strftime("%d.%m.%Y")
             ws[f'E{free_cell + i}'].alignment = Alignment(horizontal='center')
             ws[f'E{free_cell + i}'].border = borders
 
@@ -67,36 +65,6 @@ def execute(ds):
             ws[f'G{free_cell + i}'] = ds.contract
             ws[f'G{free_cell + i}'].alignment = Alignment(horizontal='center')
             ws[f'G{free_cell + i}'].border = borders
-
-            # region Maxmod
-            # ws[f'A{free_cell + i}'] = ds.msl_number + i
-            # ws[f'A{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # ws[f'A{free_cell + i}'].border = borders
-            #
-            # # ws[f'B{free_cell + i}'] = ds.device_name
-            # # ws[f'B{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # # ws[f'B{free_cell + i}'].border = borders
-            #
-            # ws[f'B{free_cell + i}'] = ds.per_one_msl
-            # ws[f'B{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # ws[f'B{free_cell + i}'].border = borders
-            #
-            # ws[f'C{free_cell + i}'] = f'{ds.first} - {ds.first + ds.per_one_msl - 1}'
-            # ws[f'C{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # ws[f'C{free_cell + i}'].border = borders
-            #
-            # ws[f'D{free_cell + i}'] = date.today()
-            # ws[f'D{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # ws[f'D{free_cell + i}'].border = borders
-            #
-            # ws[f'E{free_cell + i}'] = ds.master_name
-            # ws[f'E{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # ws[f'E{free_cell + i}'].border = borders
-            #
-            # ws[f'F{free_cell + i}'] = ds.contract
-            # ws[f'F{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # ws[f'F{free_cell + i}'].border = borders
-            # endregion
 
             ds.first += ds.per_one_msl
 
@@ -111,11 +79,12 @@ def execute(ds):
             ws[f'B{free_cell + count}'].alignment = Alignment(horizontal='center')
             ws[f'B{free_cell + count}'].border = borders
 
-            ws[f'C{free_cell + count}'] = ds.per_one_msl
+            ws[f'C{free_cell + count}'] = ds.per_one_msl if ds.device_name != 'МСЛ ББ' else ds.per_one_msl // 4
             ws[f'C{free_cell + count}'].alignment = Alignment(horizontal='center')
             ws[f'C{free_cell + count}'].border = borders
 
-            ws[f'D{free_cell + count}'] = f'{ds.first} - {ds.first + ds.per_one_msl - 1}'
+            ws[f'D{free_cell + count}'] = (f'{ds.first}'
+                                           f' - {ds.first + ds.per_one_msl - 1}')
             ws[f'D{free_cell + count}'].alignment = Alignment(horizontal='center')
             ws[f'D{free_cell + count}'].border = borders
 
@@ -131,36 +100,6 @@ def execute(ds):
             ws[f'G{free_cell + count}'].alignment = Alignment(horizontal='center')
             ws[f'G{free_cell + count}'].border = borders
 
-            # region Maxmod
-            # ws[f'A{free_cell + count}'] = ds.msl_number + count
-            # ws[f'A{free_cell + count}'].alignment = Alignment(horizontal='center')
-            # ws[f'A{free_cell + count}'].border = borders
-            #
-            # # ws[f'B{free_cell + i}'] = ds.device_name
-            # # ws[f'B{free_cell + i}'].alignment = Alignment(horizontal='center')
-            # # ws[f'B{free_cell + i}'].border = borders
-            #
-            # ws[f'B{free_cell + count}'] = ds.per_one_msl
-            # ws[f'B{free_cell + count}'].alignment = Alignment(horizontal='center')
-            # ws[f'B{free_cell + count}'].border = borders
-            #
-            # ws[f'C{free_cell + count}'] = f'{ds.first} - {ds.first + ds.per_one_msl - 1}'
-            # ws[f'C{free_cell + count}'].alignment = Alignment(horizontal='center')
-            # ws[f'C{free_cell + count}'].border = borders
-            #
-            # ws[f'D{free_cell + count}'] = date.today()
-            # ws[f'D{free_cell + count}'].alignment = Alignment(horizontal='center')
-            # ws[f'D{free_cell + count}'].border = borders
-            #
-            # ws[f'E{free_cell + count}'] = ds.master_name
-            # ws[f'E{free_cell + count}'].alignment = Alignment(horizontal='center')
-            # ws[f'E{free_cell + count}'].border = borders
-            #
-            # ws[f'F{free_cell + count}'] = ds.contract
-            # ws[f'F{free_cell + count}'].alignment = Alignment(horizontal='center')
-            # ws[f'F{free_cell + count}'].border = borders
-            # endregion
-
             ds.first += ds.per_one_msl
 
         ws[f'A{free_cell + count}'] = ds.msl_number + count
@@ -171,12 +110,14 @@ def execute(ds):
         ws[f'B{free_cell + count}'].alignment = Alignment(horizontal='center')
         ws[f'B{free_cell + count}'].border = borders
 
-        ws[f'C{free_cell + count}'] = residue
+        ws[f'C{free_cell + count}'] = residue if ds.device_name != 'МСЛ ББ' else residue // 4
         ws[f'C{free_cell + count}'].alignment = Alignment(horizontal='center')
         ws[f'C{free_cell + count}'].border = borders
+
         kurwa = ds.first - ds.per_one_msl - ds.first + residue + ds.per_one_msl - 1
         if kurwa != 0:
-            ws[f'D{free_cell + count}'] = f'{ds.first - ds.per_one_msl} - {ds.first + residue - ds.per_one_msl - 1}'
+            ws[f'D{free_cell + count}'] = (f'{ds.first - ds.per_one_msl}'
+                                           f' - {ds.first + residue - ds.per_one_msl - 1}')
         else:
             ws[f'D{free_cell + count}'] = f'{ds.first - ds.per_one_msl}'
 
@@ -194,36 +135,6 @@ def execute(ds):
         ws[f'G{free_cell + count}'] = ds.contract
         ws[f'G{free_cell + count}'].alignment = Alignment(horizontal='center')
         ws[f'G{free_cell + count}'].border = borders
-
-        # region Maxmod
-        # ws[f'A{free_cell + count}'] = ds.msl_number + count
-        # ws[f'A{free_cell + count}'].alignment = Alignment(horizontal='center')
-        # ws[f'A{free_cell + count}'].border = borders
-        #
-        # # ws[f'B{free_cell + i}'] = ds.device_name
-        # # ws[f'B{free_cell + i}'].alignment = Alignment(horizontal='center')
-        # # ws[f'B{free_cell + i}'].border = borders
-        #
-        # ws[f'B{free_cell + count}'] = ds.per_one_msl
-        # ws[f'B{free_cell + count}'].alignment = Alignment(horizontal='center')
-        # ws[f'B{free_cell + count}'].border = borders
-        #
-        # ws[f'C{free_cell + count}'] = f'{ds.first} - {ds.first + ds.per_one_msl - 1}'
-        # ws[f'C{free_cell + count}'].alignment = Alignment(horizontal='center')
-        # ws[f'C{free_cell + count}'].border = borders
-        #
-        # ws[f'D{free_cell + count}'] = date.today()
-        # ws[f'D{free_cell + count}'].alignment = Alignment(horizontal='center')
-        # ws[f'D{free_cell + count}'].border = borders
-        #
-        # ws[f'E{free_cell + count}'] = ds.master_name
-        # ws[f'E{free_cell + count}'].alignment = Alignment(horizontal='center')
-        # ws[f'E{free_cell + count}'].border = borders
-        #
-        # ws[f'F{free_cell + count}'] = ds.contract
-        # ws[f'F{free_cell + count}'].alignment = Alignment(horizontal='center')
-        # ws[f'F{free_cell + count}'].border = borders
-        # endregion
 
     wb.save(ds.table)
     return True

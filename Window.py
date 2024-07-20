@@ -1,7 +1,7 @@
-from DataParser import DataStorage as DS
+from DataStorage import DataStorage as DS
 import Editor as ed
 import Executor
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtGui
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QPushButton,
                                QLabel,
@@ -18,11 +18,13 @@ class Window(QtWidgets.QWidget):
         super().__init__()
 
         self.ds = DS()
-        self.setWindowTitle('Вставлятель')
+        self.setWindowTitle('Inserter')
+        self.setFixedSize(360, 250)
+        self.setWindowIcon(QtGui.QIcon("C:\\Users\\EDN\\Downloads\\images2.ico"))
 
         # region Лейблы
         self.label_First = QLabel('№ первого изделия: ')
-        self.label_Amount = QLabel('Общее количество плат: ')
+        self.label_Amount = QLabel('Общее количество изделий: ')
         self.label_PerMSL = QLabel('Количество на МСЛ: ')
         self.label_DeviceName = QLabel('Наименование изделия: ')
         self.label_Contract = QLabel('Номер контракта: ')
@@ -32,45 +34,29 @@ class Window(QtWidgets.QWidget):
         # region Текстбоксы
         self.textbox_First = QLineEdit()
         self.textbox_Amount = QLineEdit()
-        # self.textbox_PathToTable = QLineEdit("C:\\Users\\EDN\\PycharmProjects\\AutoInsert\\Templates\\table.xlsx")
+
+        self.textbox_PathToTable = QLineEdit("C:\\Users\\EDN\\PycharmProjects\\AutoInsert\\Templates\\table.xlsx")
+
         # self.textbox_PathToTable = QLineEdit('C:\\Users\\fmm\\Desktop\\Контроль участков\\Новое')
-        self.textbox_PathToTable = (
-            QLineEdit('\\\\192.168.2.10\\xchg\\Производство\\Работа с МСЛ\\Регистрация МСЛ.xlsx'))
+
+        # self.textbox_PathToTable = (
+        #     QLineEdit('\\\\192.168.2.10\\xchg\\Производство\\Работа с МСЛ\\Регистрация МСЛ.xlsx'))
+
         self.textbox_PerMSL = QLineEdit()
         # self.textbox_DeviceName = QLineEdit()
         self.textbox_Contract = QLineEdit()
         # self.textbox_MasterName = QLineEdit('Женя')
 
         self.listbox_Masters = QComboBox()
-        masters = ['Соловьев Евгений',
-                   'Коваленко Владимир']
-        self.listbox_Masters.addItems(masters)
+
+        self.listbox_Masters.addItems(self.ds.masters)
 
         self.listbox_Devices = QComboBox()
-        devices = ['ПИ СПЛР.469559.026-02',
-                   'ПИ СПЛР.469555.007',
-                   'ПИ СПЛР.469555.006',
-                   'УСФВИ СПЛР.467669.001',
-                   'Жгут СПЛР.685666.003',
-                   'Датчик глаза СПЛР.469639.011',
-                   'ВИП СПЛР.563344.001',
-                   'Жгут СПЛР.685666.003-01',
-                   'ПИ СПЛР.469559.026-04',
-                   'МСЛ на платы для УСФВИ',
-                   'МСЛ Пл. кнопки',
-                   'МСЛ Пл. индик.',
-                   'МСЛ Пл. упр.',
-                   'МСЛ Жгут',
-                   'МСЛ ББ',
-                   'МСЛ ИП',
-                   'МСЛ Платы ИП',
-                   'МСЛ на корпус ВИП',
-                   'Табличка СПЛР.741121.036',
-                   'МСЛ Корпус ИП',
-                   'ПИ СПЛР.469555.004']
 
-        self.listbox_Devices.addItems(devices)
-        self.textbox_Status = QLineEdit('Статус выполнения')
+        self.listbox_Devices.addItems(self.ds.devices)
+
+        self.textbox_Status = QLineEdit('Статус: ')
+        self.textbox_Status.setReadOnly(True)
 
         # endregion
 
@@ -131,9 +117,10 @@ class Window(QtWidgets.QWidget):
         self.ds.first = int(self.textbox_First.text())
         self.ds.amount = int(self.textbox_Amount.text())
         self.ds.per_one_msl = int(self.textbox_PerMSL.text())
+        self.ds.contract = self.textbox_Contract.text()
         self.ds.device_name = self.listbox_Devices.currentText()
         self.ds.master_name = self.listbox_Masters.currentText()
-        self.ds.contract = self.textbox_Contract.text()
+
 
     def button_PathToTable(self):
         """
@@ -155,18 +142,22 @@ class Window(QtWidgets.QWidget):
         self.textbox_PathToTable.clear()
 
     def button_insert_clicked(self):
-        self.parse_textboxes()
-        self.ds.table = self.textbox_PathToTable.text()
-        try:
-            Executor.execute(self.ds)
-            print('Выполнено')
-            self.textbox_Status.setStyleSheet('QLineEdit {color: green;}')
-            self.textbox_Status.setText('Выполнено!')
-        except PermissionError:
-            self.textbox_Status.setStyleSheet('QLineEdit {color: red;}')
-            self.textbox_Status.setText('Закройте таблицу и повторите попытку!')
 
+        try:
+            self.parse_textboxes()
         except ValueError:
             self.textbox_Status.setStyleSheet('QLineEdit {color: red;}')
-            self.textbox_Status.setText('Заполните все поля!')
+            self.textbox_Status.setText('Статус: ' + 'заполните все поля данных!')
+
+        try:
+            Executor.execute(self.ds)
+            self.ds.refresh_data()
+            self.textbox_Status.setStyleSheet('QLineEdit {color: green;}')
+            self.textbox_Status.setText('Статус: ' + 'выполнено успешно')
+            print("Выполнено")
+
+        except PermissionError:
+            self.textbox_Status.setStyleSheet('QLineEdit {color: red;}')
+            self.textbox_Status.setText('Статус: ' + 'закройте таблицу или проверьте к ней доступ ')
+
 
